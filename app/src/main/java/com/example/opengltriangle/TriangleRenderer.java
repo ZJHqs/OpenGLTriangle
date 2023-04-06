@@ -24,7 +24,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
 //    private static final String U_COLOR = "u_Color";
     private static final String U_MATRIX = "u_Matrix";
-    private static final String U_POSITION = "u_Position";
+//    private static final String U_POSITION = "u_Position";
+    private static final String XOFFSET = "xOffset";
     private static final String A_POSITION = "a_Position";
     private static final String A_COLOR = "a_Color";
     private static final int POSITION_COMPONENT_COUNT = 3;
@@ -46,8 +47,10 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     private int aColorLocation;
     private float[] projectionMatrix = new float[16];
     private int uMatrixLocation;
-    private int uPosition;
+//    private int uPosition;
 
+    private float offset = 0.5f;
+    private int uOffsetLocation;
 
     public TriangleRenderer(Context context) {
         this.context = context;
@@ -114,7 +117,9 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glDeleteShader(fragmentShader);
 
         uMatrixLocation = GLES20.glGetUniformLocation(program, U_MATRIX);
-        uPosition = GLES20.glGetUniformLocation(program, U_POSITION);
+
+//        uPosition = GLES20.glGetUniformLocation(program, U_POSITION);
+        uOffsetLocation = GLES20.glGetUniformLocation(program, XOFFSET);
 
 //        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
@@ -154,7 +159,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glUniform4f(uPosition, 0.5f, 0.0f, 0.0f, 0.0f);
+//        GLES20.glUniform4f(uPosition, 0.5f, 0.0f, 0.0f, 0.0f);
+        GLES20.glUniform1f(uOffsetLocation, offset);
 
         GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
 

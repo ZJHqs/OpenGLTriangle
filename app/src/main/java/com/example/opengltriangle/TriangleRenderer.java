@@ -20,20 +20,26 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     private static final boolean DBG = false;
 
-//    private static final String U_COLOR = "u_Color";
+    private static final String U_COLOR = "u_Color";
     private static final String A_POSITION = "a_Position";
-    private static final String A_COLOR = "a_Color";
+//    private static final String A_COLOR = "a_Color";
     private static final int POSITION_COMPONENT_COUNT = 3;
-    private static final int COLOR_COMPONENT_COUNT = 4;
+//    private static final int COLOR_COMPONENT_COUNT = 4;
+
+    private static final int RED = 0;
+    private static final int GREEN = 1;
+    private static final int BLUE = 2;
+    int index = 1;
+    float[] color = new float[] {1f, 0f, 0f};
 
 
     private final FloatBuffer vertexData;
-    private final FloatBuffer colorBuffer;
+//    private final FloatBuffer colorBuffer;
     private final Context context;
     private int program;
-//    private int uColorLocation;
+    private int uColorLocation;
     private int aPositionLocation;
-    private int aColorLocation;
+//    private int aColorLocation;
 
 
 
@@ -60,18 +66,18 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
         vertexData.put(vertices);
 
-        float[] color = new float[] {
-                1.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f,
-                0.0f, 1.0f, 0.0f, 1.0f,
-                1.0f, 0.0f, 0.0f, 1.0f,
-                0.0f, 0.0f, 1.0f, 1.0f
-        };
-        colorBuffer = ByteBuffer.allocateDirect(color.length * BYTES_PER_FLOAT)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer();
-        colorBuffer.put(color);
+//        float[] color = new float[] {
+//                1.0f, 0.0f, 0.0f, 1.0f,
+//                0.0f, 1.0f, 0.0f, 1.0f,
+//                0.0f, 0.0f, 1.0f, 1.0f,
+//                0.0f, 1.0f, 0.0f, 1.0f,
+//                1.0f, 0.0f, 0.0f, 1.0f,
+//                0.0f, 0.0f, 1.0f, 1.0f
+//        };
+//        colorBuffer = ByteBuffer.allocateDirect(color.length * BYTES_PER_FLOAT)
+//                .order(ByteOrder.nativeOrder())
+//                .asFloatBuffer();
+//        colorBuffer.put(color);
     }
 
 
@@ -105,12 +111,11 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
                 GLES20.GL_FLOAT, false, 0, vertexData);
         GLES20.glEnableVertexAttribArray(aPositionLocation);
 
-        aColorLocation = GLES20.glGetAttribLocation(program, A_COLOR);
-        colorBuffer.position(0);
-        GLES20.glVertexAttribPointer(aColorLocation, COLOR_COMPONENT_COUNT,
-                GLES20.GL_FLOAT, false, 0, colorBuffer);
-        GLES20.glEnableVertexAttribArray(aColorLocation);
-
+//        aColorLocation = GLES20.glGetAttribLocation(program, A_COLOR);
+//        colorBuffer.position(0);
+//        GLES20.glVertexAttribPointer(aColorLocation, COLOR_COMPONENT_COUNT,
+//                GLES20.GL_FLOAT, false, 0, colorBuffer);
+//        GLES20.glEnableVertexAttribArray(aColorLocation);
 
     }
 
@@ -123,7 +128,39 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-//        GLES20.glUniform4f(uColorLocation, 1.0f, 0f, 0f, 1.0f);
+        GLES20.glUniform4f(uColorLocation, color[0], color[1], color[2], 1f);
+        updateColor();
+
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+    }
+
+    private void updateColor() {
+        if (index == GREEN) {
+            if (color[1] < 1f) {
+                color[0] -= 0.01f;
+                color[1] += 0.01f;
+            }
+            else {
+                index = BLUE;
+            }
+        }
+        else if (index == BLUE) {
+            if (color[2] < 1f) {
+                color[1] -= 0.01f;
+                color[2] += 0.01f;
+            }
+            else {
+                index = RED;
+            }
+        }
+        else {
+            if (color[0] < 1f) {
+                color[2] -= 0.01f;
+                color[0] += 0.01f;
+            }
+            else {
+                index = GREEN;
+            }
+        }
     }
 }

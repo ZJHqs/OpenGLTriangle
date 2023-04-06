@@ -20,17 +20,20 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     private static final boolean DBG = false;
 
-    private static final String U_COLOR = "u_Color";
+//    private static final String U_COLOR = "u_Color";
     private static final String A_POSITION = "a_Position";
+    private static final String A_COLOR = "a_Color";
     private static final int POSITION_COMPONENT_COUNT = 3;
-
+    private static final int COLOR_COMPONENT_COUNT = 4;
 
 
     private final FloatBuffer vertexData;
+    private final FloatBuffer colorBuffer;
     private final Context context;
     private int program;
-    private int uColorLocation;
+//    private int uColorLocation;
     private int aPositionLocation;
+    private int aColorLocation;
 
 
 
@@ -56,6 +59,19 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
                 .asFloatBuffer();
 
         vertexData.put(vertices);
+
+        float[] color = new float[] {
+                1.0f, 0.0f, 0.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f,
+                0.0f, 1.0f, 0.0f, 1.0f,
+                1.0f, 0.0f, 0.0f, 1.0f,
+                0.0f, 0.0f, 1.0f, 1.0f
+        };
+        colorBuffer = ByteBuffer.allocateDirect(color.length * BYTES_PER_FLOAT)
+                .order(ByteOrder.nativeOrder())
+                .asFloatBuffer();
+        colorBuffer.put(color);
     }
 
 
@@ -81,13 +97,19 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glDeleteShader(vertexShader);
         GLES20.glDeleteShader(fragmentShader);
 
-        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
+//        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
 
         vertexData.position(0);
         GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT,
                 GLES20.GL_FLOAT, false, 0, vertexData);
         GLES20.glEnableVertexAttribArray(aPositionLocation);
+
+        aColorLocation = GLES20.glGetAttribLocation(program, A_COLOR);
+        colorBuffer.position(0);
+        GLES20.glVertexAttribPointer(aColorLocation, COLOR_COMPONENT_COUNT,
+                GLES20.GL_FLOAT, false, 0, colorBuffer);
+        GLES20.glEnableVertexAttribArray(aColorLocation);
 
 
     }
@@ -101,7 +123,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glUniform4f(uColorLocation, 1.0f, 0f, 0f, 1.0f);
+//        GLES20.glUniform4f(uColorLocation, 1.0f, 0f, 0f, 1.0f);
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
     }
 }

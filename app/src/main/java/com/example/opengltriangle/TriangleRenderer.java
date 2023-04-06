@@ -1,5 +1,6 @@
 package com.example.opengltriangle;
 
+import static android.opengl.Matrix.orthoM;
 import static com.example.opengltriangle.Constants.BYTES_PER_FLOAT;
 
 import android.content.Context;
@@ -14,6 +15,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 
 public class TriangleRenderer implements GLSurfaceView.Renderer {
@@ -21,6 +23,7 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     private static final boolean DBG = false;
 
 //    private static final String U_COLOR = "u_Color";
+    private static final String U_MATRIX = "u_Matrix";
     private static final String A_POSITION = "a_Position";
     private static final String A_COLOR = "a_Color";
     private static final int POSITION_COMPONENT_COUNT = 3;
@@ -40,6 +43,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 //    private int uColorLocation;
     private int aPositionLocation;
     private int aColorLocation;
+    private float[] projectionMatrix = new float[16];
+    private int uMatrixLocation;
 
 
     public TriangleRenderer(Context context) {
@@ -106,6 +111,8 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glDeleteShader(vertexShader);
         GLES20.glDeleteShader(fragmentShader);
 
+        uMatrixLocation = GLES20.glGetUniformLocation(program, U_MATRIX);
+
 //        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
 
@@ -128,12 +135,23 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        GLES20.glViewport(0, 0, width, height);
+//        GLES20.glViewport(0, 0, width, height);
+        final float aspectRatio = width > height ?
+                (float) width / (float) height :
+                (float) height / (float) width;
+        if (width > height) {
+            orthoM(projectionMatrix, 0, -aspectRatio, aspectRatio, -1f, 1f, -1f, 1f);
+        }
+        else {
+            orthoM(projectionMatrix, 0, -1f, 1f, -aspectRatio, aspectRatio, -1f, 1f);
+        }
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+        GLES20.glUniformMatrix4fv(uMatrixLocation, 1, false, projectionMatrix, 0);
 
 //        GLES20.glUniform4f(uColorLocation, color[0], color[1], color[2], 1f);
 //        updateColor();

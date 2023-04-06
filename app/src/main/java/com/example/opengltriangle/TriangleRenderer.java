@@ -41,9 +41,14 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         this.context = context;
 
         float[] vertices = new float[]{
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f,  0.5f, 0.0f
+                // 第一个三角形
+                0.5f, 0.5f, 0.0f,   // 右上角
+                0.5f, -0.5f, 0.0f,  // 右下角
+                -0.5f, 0.5f, 0.0f,  // 左上角
+                // 第二个三角形
+                0.5f, -0.5f, 0.0f,  // 右下角
+                -0.5f, -0.5f, 0.0f, // 左下角
+                -0.5f, 0.5f, 0.0f   // 左上角
         };
 
         vertexData = ByteBuffer.allocateDirect(vertices.length * BYTES_PER_FLOAT)
@@ -97,6 +102,6 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         GLES20.glUniform4f(uColorLocation, 1.0f, 0f, 0f, 1.0f);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
     }
 }

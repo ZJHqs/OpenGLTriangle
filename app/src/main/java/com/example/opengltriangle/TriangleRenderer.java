@@ -52,7 +52,6 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
                 .order(ByteOrder.nativeOrder())
                 .asFloatBuffer();
         vertexData.put(vertices);
-        vertexData.position(0);
 
         indexBuffer = ByteBuffer.allocateDirect(indices.length * BYTES_PER_SHORT)
                 .order(ByteOrder.nativeOrder())
@@ -60,23 +59,22 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         indexBuffer.put(indices);
         indexBuffer.position(0);
 
-        int vertexShader = ShaderHelper.compileVertexShader(
-                TextResourceReader.readTextFileFromResource(
-                        context, R.raw.triangle_vertex_shader));
-        int fragmentShader = ShaderHelper.compileFragmentShader(
-                TextResourceReader.readTextFileFromResource(
-                        context, R.raw.triangle_fragment_shader));
 
-        program = GLES20.glCreateProgram();
-        GLES20.glAttachShader(program, vertexShader);
-        GLES20.glAttachShader(program, fragmentShader);
-        GLES20.glLinkProgram(program);
     }
 
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         GLES20.glClearColor(0f, 0f, 0f, 0f);
+
+        program = ShaderHelper.buildProgram(
+                TextResourceReader.readTextFileFromResource(
+                        context, R.raw.triangle_vertex_shader
+                ), TextResourceReader.readTextFileFromResource(
+                        context, R.raw.triangle_fragment_shader));
+
+        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
+        aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
     }
 
     @Override
@@ -90,16 +88,15 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
         GLES20.glUseProgram(program);
 
-        aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
-        GLES20.glEnableVertexAttribArray(aPositionLocation);
+        GLES20.glUniform4f(uColorLocation, 1f, 0f, 1f, 1f);
+
+        vertexData.position(0);
         GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT,
                 GLES20.GL_FLOAT, false, 0, vertexData);
-
-        uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
-        GLES20.glUniform4f(uColorLocation, 1f, 0f, 1f, 1f);
+        GLES20.glEnableVertexAttribArray(aPositionLocation);
+        vertexData.position(0);
 
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, indices.length,
                 GLES20.GL_UNSIGNED_SHORT, indexBuffer);
-        GLES20.glDisableVertexAttribArray(aPositionLocation);
     }
 }

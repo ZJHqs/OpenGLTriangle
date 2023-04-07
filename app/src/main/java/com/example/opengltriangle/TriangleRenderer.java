@@ -1,6 +1,7 @@
 package com.example.opengltriangle;
 
 import static com.example.opengltriangle.Constants.BYTES_PER_FLOAT;
+import static com.example.opengltriangle.Constants.BYTES_PER_SHORT;
 
 import android.content.Context;
 import android.opengl.GLES20;
@@ -12,6 +13,7 @@ import com.example.opengltriangle.utils.TextResourceReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -26,12 +28,24 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
 
 
-    private final FloatBuffer vertexData;
+    private FloatBuffer vertexData;
+    private ShortBuffer indexBuffer;
     private final Context context;
     private int program;
     private int uColorLocation;
     private int aPositionLocation;
 
+    float[] vertices = new float[] {
+            0.5f,  0.5f, 0.0f,  // top right
+            0.5f, -0.5f, 0.0f,  // bottom right
+            -0.5f, -0.5f, 0.0f,  // bottom left
+            -0.5f,  0.5f, 0.0f   // top left
+    };
+
+    short[] indices = new short[] {
+            0, 1, 3,
+            1, 2, 3
+    };
 
 
 
@@ -39,23 +53,6 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
 
     public TriangleRenderer(Context context) {
         this.context = context;
-
-        float[] vertices = new float[]{
-                // 第一个三角形
-                0.5f, 0.5f, 0.0f,   // 右上角
-                0.5f, -0.5f, 0.0f,  // 右下角
-                -0.5f, 0.5f, 0.0f,  // 左上角
-                // 第二个三角形
-                0.5f, -0.5f, 0.0f,  // 右下角
-                -0.5f, -0.5f, 0.0f, // 左下角
-                -0.5f, 0.5f, 0.0f   // 左上角
-        };
-
-        vertexData = ByteBuffer.allocateDirect(vertices.length * BYTES_PER_FLOAT)
-                .order(ByteOrder.nativeOrder())
-                .asFloatBuffer();
-
-        vertexData.put(vertices);
     }
 
 
@@ -68,27 +65,21 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
         String fragmentShaderSource = TextResourceReader
                 .readTextFileFromResource(context, R.raw.triangle_fragment_shader);
 
-        int vertexShader = ShaderHelper.compileVertexShader(vertexShaderSource);
-        int fragmentShader = ShaderHelper.compileFragmentShader(fragmentShaderSource);
-
-        program = ShaderHelper.linkProgram(vertexShader, fragmentShader);
-
-        if (DBG) {
-            ShaderHelper.validateProgram(program);
-        }
-
-        GLES20.glUseProgram(program);
-        GLES20.glDeleteShader(vertexShader);
-        GLES20.glDeleteShader(fragmentShader);
+        program = ShaderHelper.buildProgram(vertexShaderSource, fragmentShaderSource);
 
         uColorLocation = GLES20.glGetUniformLocation(program, U_COLOR);
         aPositionLocation = GLES20.glGetAttribLocation(program, A_POSITION);
 
-        vertexData.position(0);
-        GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT,
-                GLES20.GL_FLOAT, false, 0, vertexData);
-        GLES20.glEnableVertexAttribArray(aPositionLocation);
+        vertexData = ByteBuffer.allocateDirect(vertices.length * BYTES_PER_FLOAT).
+                order(ByteOrder.nativeOrder()).asFloatBuffer();
+        // TODO::这里是否应该直接把put放进去？
+        vertexData.put(vertices);
 
+
+        indexBuffer = ByteBuffer.allocateDirect(6 * BYTES_PER_SHORT).
+                order(ByteOrder.nativeOrder()).asShortBuffer();
+        indexBuffer.put(indices);
+        indexBuffer.position(0);
 
     }
 
@@ -101,7 +92,16 @@ public class TriangleRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
-        GLES20.glUniform4f(uColorLocation, 1.0f, 0f, 0f, 1.0f);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
+        GLES20.glUseProgram(program);
+        GLES20.glUniform4f(uColorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+
+        vertexData.position(0);
+        GLES20.glVertexAttribPointer(aPositionLocation, POSITION_COMPONENT_COUNT, GLES20.GL_FLOAT,
+                false, 0, vertexData);
+        GLES20.glEnableVertexAttribArray(aPositionLocation);
+
+        vertexData.position(0);
+
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, 6, GLES20.GL_UNSIGNED_SHORT, indexBuffer);
     }
 }
